@@ -1,0 +1,49 @@
+name: agencia-web-ia
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: agencia_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agencia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?definir en .env}
+      POSTGRES_DB: ${POSTGRES_DB:-agencia}
+    ports:
+      # Solo loopback: ia-node ya expone otros Postgres y este no necesita
+      # ser alcanzable desde fuera. 5432/5433/5434 estan ocupados.
+      - "127.0.0.1:${POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Postgres corre estos .sql en orden alfabetico, pero solo la primera vez
+      # que se crea el volumen. Para aplicar migraciones nuevas sobre una base
+      # existente, ver `make migrate`.
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agencia} -d ${POSTGRES_DB:-agencia}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: agencia_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-agencia}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-agencia}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+    ports:
+      - "127.0.0.1:8080:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  db_data:

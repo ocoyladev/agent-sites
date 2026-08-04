@@ -1,0 +1,63 @@
+# Configuracion del nicho "abogados" en Arequipa.
+#
+# Agregar un nicho = agregar un archivo como este. No se toca codigo
+# (seccion 5.3 del plan).
+
+nombre = "abogados"
+etiqueta = "Abogados y estudios juridicos"
+
+# Proxies de calidad comercial del nicho, en escala 0-1.
+# demanda: que tan seguido la gente busca este servicio online.
+# ticket: valor medio de un cliente cerrado para el negocio.
+# Un abogado factura por caso mucho mas que una peluqueria, pero se busca
+# menos seguido que un gasfitero -- de ahi la asimetria.
+demanda_base = 0.60
+ticket_base = 0.85
+
+# Variantes de Text Search. Cada una se cruza con cada zona, asi que el costo
+# de descubrimiento es len(consultas) * len(zonas) llamadas al SKU Text Search Pro.
+consultas = [
+  "abogado",
+  "estudio juridico",
+  "bufete de abogados",
+  "asesoria legal",
+  "abogado laboralista",
+  "abogado penalista",
+  "abogado de familia",
+]
+
+# Tipos de Google Places que confirman que el resultado es del nicho.
+# Text Search devuelve ruido (notarias, municipalidades, academias); esto lo filtra
+# antes de gastar una llamada de Place Details, que es la cara.
+tipos_esperados = ["lawyer", "legal_services", "notary_public"]
+
+# Tipos que descalifican de entrada aunque el nombre suene al nicho.
+tipos_excluidos = [
+  "local_government_office",
+  "courthouse",
+  "police",
+  "university",
+  "school",
+]
+
+# Distritos de Arequipa. Los primeros concentran los estudios juridicos por
+# cercania a la Corte Superior de Justicia; los ultimos son mas residenciales
+# y suelen dar abogados independientes -- justo el perfil con menos presencia
+# digital, que es el que mejor califica.
+zonas = [
+  "Cercado, Arequipa",
+  "Yanahuara, Arequipa",
+  "Cayma, Arequipa",
+  "Jose Luis Bustamante y Rivero, Arequipa",
+  "Miraflores, Arequipa",
+  "Paucarpata, Arequipa",
+  "Mariano Melgar, Arequipa",
+  "Alto Selva Alegre, Arequipa",
+  "Cerro Colorado, Arequipa",
+  "Socabaya, Arequipa",
+  "Jacobo Hunter, Arequipa",
+  "Sachaca, Arequipa",
+]
+
+# Umbral de `LeadScore.total` a partir del cual el lead pasa a `calificado`.
+umbral_calificacion = 55.0

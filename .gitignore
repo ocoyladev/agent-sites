@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.env
+.env.*
+!.env.example
+
+# Datos y salidas de corridas reales
+data/
+out/
+*.xlsx
+!tests/fixtures/*.xlsx
+
+node_modules/
+.next/
+dist/
+build/
