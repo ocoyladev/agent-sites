@@ -13,6 +13,7 @@ const accionPrincipal = contacto.whatsapp_url ?? contacto.telefono_href;
 const etiquetaPrincipal = contacto.whatsapp_url ? 'Escribir por WhatsApp' : 'Llamar ahora';
 const anio = new Date().getFullYear();
 const fotoHero = hechos.fotos.at(0);
+const esDemo = sitio.es_demo;
 const estrellas = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
 ---
 
@@ -149,6 +150,17 @@ const estrellas = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
       <p class="pie__atribucion">
         Informacion del negocio y resenas obtenidas de su ficha publica en Google.
       </p>
+      {
+        /* Aviso de demo: evita que el sitio se confunda con el oficial del
+           negocio, que es el riesgo real de la seccion 10 del plan. Se omite
+           al pasar a produccion, cuando el negocio ya es cliente. */
+        esDemo && (
+          <p class="pie__demo">
+            Propuesta de sitio web preparada para {hechos.nombre}. No es un sitio oficial
+            del negocio.
+          </p>
+        )
+      }
     </div>
   </footer>
 </Base>

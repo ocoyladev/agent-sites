@@ -100,6 +100,15 @@ class SiteSpec(_Base):
     contenido: Contenido | None = None
     """None hasta que corre el paso de copywriting."""
 
+    es_demo: bool = True
+    """Un sitio demo lleva aviso de que no es el sitio oficial del negocio.
+
+    Se genera sin que el negocio lo haya pedido, con sus datos publicos de
+    Google. El aviso evita que se confunda con su sitio real, que es el riesgo
+    concreto de la seccion 10 del plan. Pasa a False cuando el negocio cierra
+    como cliente y el sitio va a produccion.
+    """
+
     @property
     def esta_completa(self) -> bool:
         return self.contenido is not None

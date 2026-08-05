@@ -14,7 +14,7 @@ Plan completo: [`docs/plan-agencia-webs-ia.md`](docs/plan-agencia-webs-ia.md)
 |---|---|---|
 | 1 — Lead generation | descubrir y calificar negocios | **funcionando** (Google Places) |
 | 2 — CRM / base | Postgres, pipeline comercial | **funcionando** (esquema + upsert) |
-| 3 — Generacion de sitios | spec-driven + harness de QA | **parcial**: pipeline y QA ok; el copy de IA cae al respaldo (ver abajo) |
+| 3 — Generacion de sitios | spec-driven + harness de QA | **funcionando** (Astro + Gemini/Ollama) |
 | 4 — Deploy | subdominio automatico | **funcionando** (Cloudflare Pages) |
 | 5 — Backend compartido | formularios, citas, WhatsApp | esqueleto |
 | 6 — Analitica | Umami + dashboard | pendiente |
@@ -69,15 +69,15 @@ uv run python -m scripts.generar_sitio --demo
 uv run python -m scripts.generar_sitio --demo --sin-ia --desplegar
 ```
 
-> **Estado del copy con IA.** En ia-node (8 nucleos, sin GPU) gemma4:26b rinde
-> ~2,9 tokens/s. Pidiendo todo el sitio en un solo JSON **no funcionaba**: el
-> modelo degeneraba en un bucle y agotaba los reintentos (14m39s para terminar en
-> plantilla). Pidiendolo en tres piezas cortas, **2 de 3 salen del modelo** y la
-> tercera cae a plantilla; el `origen` queda en `mixto`.
->
-> Sirve para el piloto supervisado. Para volumen conviene un proveedor en la nube
-> detras del mismo `LLMClient`: ~3 min de CPU por sitio son ~15 horas de computo
-> al mes a 300 sitios.
+El proveedor de IA se elige con `LLM_PROVEEDOR` (`auto` | `gemini` | `ollama` |
+`ninguno`). Con `auto` usa Gemini si hay key y cae a Ollama local si no.
+
+> **Por que Gemini para volumen.** En ia-node (sin GPU) gemma4:26b rinde ~2,9
+> tokens/s: ~3 min de CPU por sitio, o ~15 horas de computo al mes a 300 sitios,
+> y aun asi solo 2 de 3 piezas salen del modelo. Gemini responde en segundos y su
+> `responseSchema` obliga la forma del JSON del lado del servidor, lo que elimina
+> el modo de falla que rompia la generacion local (el modelo degenerando en un
+> bucle a mitad del JSON). Ver [docs/setup-gemini.md](docs/setup-gemini.md).
 
 Sale en `out/sitios/<site_id>/dist/` y termina imprimiendo el reporte de QA. Si
 el harness rechaza el sitio, el script sale con codigo 1.
@@ -96,7 +96,7 @@ site_generator/    generacion de sitios
   spec.py            Hechos (deterministas) vs Contenido (generado por IA)
   spec_builder.py    LeadDetail -> SiteSpec, sin pasar por ningun modelo
   contenido.py       el paso de IA, con esquema estricto y respaldo de plantilla
-  llm/               protocolo LLMClient + proveedor Ollama
+  llm/               protocolo LLMClient + proveedores Gemini y Ollama
   render.py          SiteSpec -> build de Astro
   qa.py              harness: estructura, enlaces y fact-check contra la spec
 templates/         un proyecto Astro por nicho

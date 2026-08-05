@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     places_max_atmosphere_calls_per_run: int = 100
     places_max_photo_calls_per_run: int = 100
 
+    # --- Motor de copywriting (Fase 3) ---
+    # 'gemini' si hay key, 'ollama' si no. Ver docs/setup-gemini.md
+    llm_proveedor: str = "auto"
+    gemini_api_key: str = ""
+    gemini_modelo: str = "gemini-2.5-flash"
+    ollama_modelo: str = "gemma4:26b"
+
     # --- Cloudflare Pages (Fase 4) ---
     # Un solo proyecto para todos los sitios demo: Cloudflare topea en 100
     # proyectos por cuenta. Cada sitio es un alias de rama dentro del proyecto.

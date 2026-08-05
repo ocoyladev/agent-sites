@@ -330,6 +330,16 @@
     margin-block-start: 0.5rem;
     font-size: 0.8125rem;
   }
+
+  /* Discreto pero legible: tiene que poder leerse si alguien lo busca, sin
+     competir con el CTA. */
+  .pie__demo {
+    margin-block-start: 1rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--borde);
+    font-size: 0.8125rem;
+    color: var(--texto-suave);
+  }
 }
 
 /* En modo de colores forzados los fondos y sombras desaparecen: los bordes

@@ -57,4 +57,5 @@ export interface SiteSpec {
   hechos: Hechos;
   tema: Tema;
   contenido: Contenido;
+  es_demo: boolean;
 }

@@ -21,8 +21,7 @@ from lead_gen.models import Foto, LeadDetail, Resena
 from lead_gen.nichos import cargar_nicho
 from settings import get_settings
 from site_generator.contenido import generar_contenido
-from site_generator.llm.base import LLMClient
-from site_generator.llm.ollama import OllamaClient
+from site_generator.llm import LLMClient, construir_llm
 from site_generator.qa import revisar_sitio
 from site_generator.render import construir_sitio
 from site_generator.spec import Tema
@@ -81,16 +80,19 @@ async def procesar(args: argparse.Namespace) -> int:
     spec = construir_spec(lead, nicho, tema=tema)
     print(f"site_id: {spec.site_id}")
 
+    ajustes = get_settings()
     llm: LLMClient | None = None
     if not args.sin_ia:
-        llm = OllamaClient(args.modelo)
-        print(f"Generando copy con {args.modelo} (puede tardar varios minutos en CPU)...")
+        llm = construir_llm(ajustes)
+        if llm is not None:
+            print(f"Generando contenido con {llm.nombre}...")
 
     try:
         contenido, origen = await generar_contenido(spec, nicho, llm)
     finally:
-        if isinstance(llm, OllamaClient):
-            await llm.aclose()
+        cerrar = getattr(llm, "aclose", None)
+        if cerrar is not None:
+            await cerrar()
 
     spec = spec.model_copy(update={"contenido": contenido})
     print(f"Contenido generado por: {origen}")
@@ -119,7 +121,6 @@ async def procesar(args: argparse.Namespace) -> int:
 
     # El deploy va DESPUES del QA y solo si aprobo: publicar un sitio con el
     # telefono equivocado es peor que no publicar nada.
-    ajustes = get_settings()
     deployer = CloudflarePagesDeployer(
         ajustes.cloudflare_pages_project,
         api_token=ajustes.cloudflare_api_token,
@@ -142,7 +143,6 @@ def main() -> int:
     parser.add_argument("--demo", action="store_true", help="usa un lead de ejemplo")
     parser.add_argument("--lead-ref", help="ref del lead en la base (pendiente)")
     parser.add_argument("--sin-ia", action="store_true", help="copy de plantilla, sin LLM")
-    parser.add_argument("--modelo", default="gemma4:26b")
     parser.add_argument(
         "--desplegar", action="store_true", help="publica en Cloudflare Pages si el QA aprueba"
     )
