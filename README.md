@@ -15,7 +15,7 @@ Plan completo: [`docs/plan-agencia-webs-ia.md`](docs/plan-agencia-webs-ia.md)
 | 1 — Lead generation | descubrir y calificar negocios | **funcionando** (Google Places) |
 | 2 — CRM / base | Postgres, pipeline comercial | **funcionando** (esquema + upsert) |
 | 3 — Generacion de sitios | spec-driven + harness de QA | **parcial**: pipeline y QA ok; el copy de IA cae al respaldo (ver abajo) |
-| 4 — Deploy | subdominio automatico | pendiente |
+| 4 — Deploy | subdominio automatico | **funcionando** (Cloudflare Pages) |
 | 5 — Backend compartido | formularios, citas, WhatsApp | esqueleto |
 | 6 — Analitica | Umami + dashboard | pendiente |
 | 7 — Outreach | n8n + WhatsApp | pendiente |
@@ -64,17 +64,20 @@ uv run python -m scripts.generar_sitio --demo --sin-ia
 
 # Con copywriting real
 uv run python -m scripts.generar_sitio --demo
+
+# Generar y publicar en Cloudflare Pages (solo si el QA aprueba)
+uv run python -m scripts.generar_sitio --demo --sin-ia --desplegar
 ```
 
-> **Estado del copy con IA (2026-08-04).** En ia-node (8 nucleos, sin GPU)
-> gemma4:26b rinde ~2,5 tokens/s y **hasta ahora no completa** el JSON del sitio:
-> los dos intentos se agotan y el generador cae al copy de plantilla. La corrida
-> completa tardo 14m39s y termino con un sitio valido, pero escrito por la
-> plantilla, no por el modelo.
+> **Estado del copy con IA.** En ia-node (8 nucleos, sin GPU) gemma4:26b rinde
+> ~2,9 tokens/s. Pidiendo todo el sitio en un solo JSON **no funcionaba**: el
+> modelo degeneraba en un bucle y agotaba los reintentos (14m39s para terminar en
+> plantilla). Pidiendolo en tres piezas cortas, **2 de 3 salen del modelo** y la
+> tercera cae a plantilla; el `origen` queda en `mixto`.
 >
-> El pipeline, el respaldo y el harness funcionan; lo que falta es un proveedor
-> de LLM que rinda. Se resuelve por configuracion, no reescribiendo:
-> `LLMClient` ya abstrae al proveedor.
+> Sirve para el piloto supervisado. Para volumen conviene un proveedor en la nube
+> detras del mismo `LLMClient`: ~3 min de CPU por sitio son ~15 horas de computo
+> al mes a 300 sitios.
 
 Sale en `out/sitios/<site_id>/dist/` y termina imprimiendo el reporte de QA. Si
 el harness rechaza el sitio, el script sale con codigo 1.
@@ -100,6 +103,7 @@ templates/         un proyecto Astro por nicho
 nichos/            un archivo TOML por nicho -- agregar nicho no toca codigo
 db/migrations/     esquema SQL versionado
 backend/           API FastAPI (multi-tenant, en construccion)
+deploy/            publicacion de los sitios (hoy: Cloudflare Pages)
 scripts/           corridas operativas
 docs/adr/          decisiones de diseno y su porque
 ```

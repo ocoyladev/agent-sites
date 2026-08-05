@@ -16,6 +16,7 @@ import logging
 import sys
 from pathlib import Path
 
+from deploy.cloudflare import CloudflarePagesDeployer
 from lead_gen.models import Foto, LeadDetail, Resena
 from lead_gen.nichos import cargar_nicho
 from settings import get_settings
@@ -109,7 +110,30 @@ async def procesar(args: argparse.Namespace) -> int:
     print()
     print(reporte.resumen())
 
-    return 0 if reporte.aprobado else 1
+    if not reporte.aprobado:
+        return 1
+
+    if not args.desplegar:
+        print("\n(usa --desplegar para publicarlo en Cloudflare Pages)")
+        return 0
+
+    # El deploy va DESPUES del QA y solo si aprobo: publicar un sitio con el
+    # telefono equivocado es peor que no publicar nada.
+    ajustes = get_settings()
+    deployer = CloudflarePagesDeployer(
+        ajustes.cloudflare_pages_project,
+        api_token=ajustes.cloudflare_api_token,
+        account_id=ajustes.cloudflare_account_id,
+    )
+    print("\nDesplegando a Cloudflare Pages...")
+    despliegue = await deployer.desplegar(resultado.dist, spec.site_id)
+
+    if not despliegue.exito:
+        print(f"\nEl despliegue fallo:\n{despliegue.salida}", file=sys.stderr)
+        return 1
+
+    print(f"Publicado en: {despliegue.url}")
+    return 0
 
 
 def main() -> int:
@@ -119,6 +143,9 @@ def main() -> int:
     parser.add_argument("--lead-ref", help="ref del lead en la base (pendiente)")
     parser.add_argument("--sin-ia", action="store_true", help="copy de plantilla, sin LLM")
     parser.add_argument("--modelo", default="gemma4:26b")
+    parser.add_argument(
+        "--desplegar", action="store_true", help="publica en Cloudflare Pages si el QA aprueba"
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 

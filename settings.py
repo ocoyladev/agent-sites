@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     places_max_atmosphere_calls_per_run: int = 100
     places_max_photo_calls_per_run: int = 100
 
+    # --- Cloudflare Pages (Fase 4) ---
+    # Un solo proyecto para todos los sitios demo: Cloudflare topea en 100
+    # proyectos por cuenta. Cada sitio es un alias de rama dentro del proyecto.
+    cloudflare_api_token: str = ""
+    cloudflare_account_id: str = ""
+    cloudflare_pages_project: str = "agencia-demos"
+
     nicho: str = "abogados"
     ciudad: str = "Arequipa"
 
