@@ -61,3 +61,23 @@ zonas = [
 
 # Umbral de `LeadScore.total` a partir del cual el lead pasa a `calificado`.
 umbral_calificacion = 55.0
+
+# Catalogo de servicios del rubro. La IA elige de esta lista y escribe la
+# descripcion de cada uno; no puede inventar servicios fuera del catalogo.
+# Acota la alucinacion sin tener que revisar sitio por sitio.
+servicios = [
+  "Derecho laboral",
+  "Derecho de familia",
+  "Derecho penal",
+  "Derecho civil y contratos",
+  "Sucesiones y herencias",
+  "Derecho administrativo",
+  "Conciliacion y arbitraje",
+]
+
+# Paleta del nicho. Sobria y formal, apropiada para servicios legales.
+[tema]
+color_primario = "#1e3a5f"
+color_acento = "#c9a227"
+fuente_titulos = "Georgia, 'Times New Roman', serif"
+fuente_texto = "system-ui, -apple-system, sans-serif"

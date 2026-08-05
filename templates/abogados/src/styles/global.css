@@ -1,0 +1,355 @@
+@layer reset, base, layout, components;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  :where(body, h1, h2, h3, p, figure, blockquote, ul, ol) {
+    margin: 0;
+  }
+
+  :where(ul, ol):where([role="list"]) {
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  :where(img, picture, svg) {
+    display: block;
+    max-inline-size: 100%;
+    height: auto;
+  }
+
+  :where(a) {
+    color: inherit;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+
+    /* Tier 1 — los valores concretos los inyecta la plantilla desde el nicho. */
+    --brand-primario: #1e3a5f;
+    --brand-acento: #c9a227;
+    --fuente-titulos: Georgia, serif;
+    --fuente-texto: system-ui, sans-serif;
+
+    /* Tier 2 — semanticos, resueltos por esquema de color. */
+    --superficie: light-dark(#ffffff, #12171f);
+    --superficie-suave: light-dark(#f4f6f9, #1a212c);
+    --texto: light-dark(#1a1f28, #e8ecf2);
+    --texto-suave: light-dark(#53606f, #a8b3c1);
+    --borde: light-dark(#dde3ea, #2b3543);
+
+    /* El primario tal cual es demasiado oscuro sobre fondo oscuro: se aclara. */
+    --titulo: light-dark(var(--brand-primario), #dfe7f2);
+
+    --ancho-max: 68rem;
+    --radio: 0.625rem;
+    --espacio-seccion: clamp(3rem, 8vw, 5.5rem);
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--fuente-texto);
+    /* Escala fluida: legible en un celular de gama baja y en escritorio. */
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    line-height: 1.65;
+    color: var(--texto);
+    background: var(--superficie);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--fuente-titulos);
+    line-height: 1.15;
+    color: var(--titulo);
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 1.4rem + 3vw, 3.25rem);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.125rem);
+  }
+
+  h3 {
+    font-size: 1.1875rem;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :where(a):focus-visible,
+  :where(button):focus-visible {
+    outline: 3px solid var(--brand-acento);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+@layer layout {
+  .envoltura {
+    inline-size: min(100% - 2.5rem, var(--ancho-max));
+    margin-inline: auto;
+  }
+
+  .seccion {
+    padding-block: var(--espacio-seccion);
+  }
+
+  .seccion--suave {
+    background: var(--superficie-suave);
+  }
+
+  .rejilla {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  }
+}
+
+@layer components {
+  /* --- Cabecera --- */
+  .cabecera {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 10;
+    background: color-mix(in oklab, var(--superficie) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-block-end: 1px solid var(--borde);
+  }
+
+  .cabecera__fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-block: 0.875rem;
+  }
+
+  .cabecera__nombre {
+    font-family: var(--fuente-titulos);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--titulo);
+    text-decoration: none;
+  }
+
+  /* --- Botones --- */
+  .boton {
+    /* 44px de alto minimo: objetivo tactil accesible. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-block-size: 2.75rem;
+    padding: 0.625rem 1.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--radio);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .boton--principal {
+    background: var(--brand-acento);
+    color: #14181f;
+  }
+
+  .boton--principal:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--brand-acento), black 12%);
+  }
+
+  .boton--secundario {
+    border-color: currentColor;
+    color: var(--titulo);
+  }
+
+  .boton--secundario:hover:not(:disabled) {
+    background: var(--superficie-suave);
+  }
+
+  /* --- Hero --- */
+  .hero {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-block-size: min(78dvh, 40rem);
+    padding-block: var(--espacio-seccion);
+    background: var(--brand-primario);
+    color: #f2f5f9;
+    /* El hero es la unica zona que fija su esquema: el texto claro sobre el
+       color de marca funciona igual en modo claro y oscuro. */
+    color-scheme: dark;
+  }
+
+  .hero__foto {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    opacity: 0.28;
+  }
+
+  .hero__contenido {
+    position: relative;
+    max-inline-size: 44rem;
+  }
+
+  .hero h1 {
+    color: inherit;
+  }
+
+  .hero__subtitulo {
+    margin-block-start: 1.125rem;
+    font-size: 1.1875rem;
+    color: #d6dee9;
+  }
+
+  .hero__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.875rem;
+    margin-block-start: 2rem;
+  }
+
+  .hero__valoracion {
+    margin-block-start: 1.5rem;
+    font-size: 0.9375rem;
+    color: #c3cede;
+  }
+
+  /* --- Tarjetas --- */
+  .tarjeta {
+    container-type: inline-size;
+    padding: 1.5rem;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+  }
+
+  .tarjeta__titulo {
+    margin-block-end: 0.5rem;
+  }
+
+  .tarjeta p {
+    color: var(--texto-suave);
+  }
+
+  /* Con sitio para dos columnas, el titulo va al lado de la descripcion. */
+  @container (min-width: 30rem) {
+    .tarjeta {
+      display: grid;
+      grid-template-columns: 12rem 1fr;
+      gap: 1.25rem;
+    }
+
+    .tarjeta__titulo {
+      margin-block-end: 0;
+    }
+  }
+
+  /* --- Resenas --- */
+  .resena {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.5rem;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+  }
+
+  .resena__texto {
+    margin: 0;
+    font-style: italic;
+    color: var(--texto);
+  }
+
+  .resena__autor {
+    font-size: 0.875rem;
+    color: var(--texto-suave);
+  }
+
+  .resena__estrellas {
+    color: var(--brand-acento);
+    letter-spacing: 0.1em;
+  }
+
+  /* --- Contacto --- */
+  .contacto__datos {
+    display: grid;
+    gap: 1rem;
+    margin-block-start: 1.75rem;
+  }
+
+  .contacto__dato {
+    display: flex;
+    gap: 0.625rem;
+    align-items: baseline;
+  }
+
+  .contacto__etiqueta {
+    min-inline-size: 6.5rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+  }
+
+  .horario {
+    margin-block-start: 0.5rem;
+    color: var(--texto-suave);
+    font-size: 0.9375rem;
+  }
+
+  .horario li:not(:last-child) {
+    margin-block-end: 0.25rem;
+  }
+
+  /* --- Pie --- */
+  .pie {
+    padding-block: 2.5rem;
+    border-block-start: 1px solid var(--borde);
+    color: var(--texto-suave);
+    font-size: 0.875rem;
+  }
+
+  .pie__atribucion {
+    margin-block-start: 0.5rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* En modo de colores forzados los fondos y sombras desaparecen: los bordes
+   pasan a ser la unica senal de estructura, asi que se declaran explicitos. */
+@media (forced-colors: active) {
+  .boton {
+    border-color: ButtonText;
+  }
+
+  .tarjeta,
+  .resena {
+    border-color: CanvasText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

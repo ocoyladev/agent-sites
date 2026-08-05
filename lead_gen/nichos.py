@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import tomllib
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 __all__ = ["DIR_NICHOS", "Nicho", "cargar_nicho", "nichos_disponibles"]
@@ -22,6 +23,11 @@ class Nicho:
     tipos_esperados: frozenset[str]
     tipos_excluidos: frozenset[str]
     umbral_calificacion: float
+    servicios: tuple[str, ...] = ()
+    """Catalogo del rubro. La IA elige de aqui; no puede inventar servicios."""
+
+    tema: Mapping[str, str] = field(default_factory=dict)
+    """Paleta y tipografias del nicho, se vuelca en `SiteSpec.tema`."""
 
     @property
     def llamadas_de_descubrimiento(self) -> int:
@@ -60,6 +66,8 @@ def cargar_nicho(nombre: str, *, directorio: Path | None = None) -> Nicho:
         tipos_esperados=frozenset(datos.get("tipos_esperados", ())),
         tipos_excluidos=frozenset(datos.get("tipos_excluidos", ())),
         umbral_calificacion=float(datos.get("umbral_calificacion", 55.0)),
+        servicios=tuple(datos.get("servicios", ())),
+        tema=dict(datos.get("tema", {})),
     )
 
 

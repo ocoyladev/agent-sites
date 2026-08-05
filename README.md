@@ -14,7 +14,7 @@ Plan completo: [`docs/plan-agencia-webs-ia.md`](docs/plan-agencia-webs-ia.md)
 |---|---|---|
 | 1 — Lead generation | descubrir y calificar negocios | **funcionando** (Google Places) |
 | 2 — CRM / base | Postgres, pipeline comercial | **funcionando** (esquema + upsert) |
-| 3 — Generacion de sitios | spec-driven + harness de QA | pendiente |
+| 3 — Generacion de sitios | spec-driven + harness de QA | **parcial**: pipeline y QA ok; el copy de IA cae al respaldo (ver abajo) |
 | 4 — Deploy | subdominio automatico | pendiente |
 | 5 — Backend compartido | formularios, citas, WhatsApp | esqueleto |
 | 6 — Analitica | Umami + dashboard | pendiente |
@@ -53,6 +53,32 @@ uv run python -m scripts.run_extraction
 
 Cada corrida termina imprimiendo su consumo por SKU de Google.
 
+## Generar un sitio
+
+```bash
+# Una sola vez: dependencias de la plantilla Astro
+npm install --prefix templates/abogados
+
+# Pipeline completo en segundos, con copy de plantilla y sin tocar Ollama
+uv run python -m scripts.generar_sitio --demo --sin-ia
+
+# Con copywriting real
+uv run python -m scripts.generar_sitio --demo
+```
+
+> **Estado del copy con IA (2026-08-04).** En ia-node (8 nucleos, sin GPU)
+> gemma4:26b rinde ~2,5 tokens/s y **hasta ahora no completa** el JSON del sitio:
+> los dos intentos se agotan y el generador cae al copy de plantilla. La corrida
+> completa tardo 14m39s y termino con un sitio valido, pero escrito por la
+> plantilla, no por el modelo.
+>
+> El pipeline, el respaldo y el harness funcionan; lo que falta es un proveedor
+> de LLM que rinda. Se resuelve por configuracion, no reescribiendo:
+> `LLMClient` ya abstrae al proveedor.
+
+Sale en `out/sitios/<site_id>/dist/` y termina imprimiendo el reporte de QA. Si
+el harness rechaza el sitio, el script sale con codigo 1.
+
 ## Como esta armado
 
 ```
@@ -63,6 +89,14 @@ lead_gen/          descubrimiento, scoring y calidad de sitios
   scoring.py         score compuesto 0-100 + filtros duros
   site_quality_check.py   heuristicas sobre el sitio actual del negocio
   nichos.py          carga de nichos/*.toml
+site_generator/    generacion de sitios
+  spec.py            Hechos (deterministas) vs Contenido (generado por IA)
+  spec_builder.py    LeadDetail -> SiteSpec, sin pasar por ningun modelo
+  contenido.py       el paso de IA, con esquema estricto y respaldo de plantilla
+  llm/               protocolo LLMClient + proveedor Ollama
+  render.py          SiteSpec -> build de Astro
+  qa.py              harness: estructura, enlaces y fact-check contra la spec
+templates/         un proyecto Astro por nicho
 nichos/            un archivo TOML por nicho -- agregar nicho no toca codigo
 db/migrations/     esquema SQL versionado
 backend/           API FastAPI (multi-tenant, en construccion)
@@ -70,7 +104,7 @@ scripts/           corridas operativas
 docs/adr/          decisiones de diseno y su porque
 ```
 
-### Dos ideas que explican el resto
+### Tres ideas que explican el resto
 
 **1. La fuente de leads es intercambiable.** Todo va detras del protocolo
 `LeadSource`. Google es el primer proveedor, no el unico posible — el registro
@@ -82,6 +116,12 @@ que toque cualquier campo pedido, y los campos que necesitamos (telefono, sitio,
 rating) son del nivel con menos cuota gratuita. Por eso el mapeo campo -> SKU
 esta en codigo probado y hay tests que fallan si alguien encarece una mascara.
 Ver [ADR 0002](docs/adr/0002-field-masks-y-costo.md).
+
+**3. La IA nunca escribe hechos.** Nombre, telefono, direccion, horario y resenas
+salen de `LeadDetail` de forma determinista; el modelo solo redacta prosa. Y
+despues del build, el harness verifica el HTML final contra la spec: si un `tel:`
+no es el telefono real o una resena fue reescrita, el sitio se rechaza. Ver
+[ADR 0003](docs/adr/0003-generacion-de-sitios.md).
 
 ## Verificacion
 

@@ -1,0 +1,61 @@
+---
+import '../styles/global.css';
+import type { SiteSpec } from '../spec';
+
+interface Props {
+  spec: SiteSpec;
+}
+
+const { spec } = Astro.props;
+const { hechos, tema, contenido } = spec;
+
+const descripcion = contenido.subtitulo.slice(0, 155);
+const titulo = `${hechos.nombre} | ${contenido.titular}`;
+
+// Datos estructurados: es lo que hace que el negocio aparezca bien en buscadores.
+// Todos los campos salen de `hechos`, nunca del contenido generado.
+const datosEstructurados = {
+  '@context': 'https://schema.org',
+  '@type': 'LegalService',
+  name: hechos.nombre,
+  telephone: hechos.contacto.telefono,
+  areaServed: hechos.zona,
+  ...(hechos.contacto.direccion && {
+    address: { '@type': 'PostalAddress', streetAddress: hechos.contacto.direccion },
+  }),
+  ...(hechos.rating &&
+    hechos.num_resenas && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: hechos.rating,
+        reviewCount: hechos.num_resenas,
+      },
+    }),
+};
+---
+
+<html lang="es-PE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:type" content="website" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={`https://${spec.site_id}.pages.dev/`} />
+    <style
+      set:html={`:root{
+        --brand-primario:${tema.color_primario};
+        --brand-acento:${tema.color_acento};
+        --fuente-titulos:${tema.fuente_titulos};
+        --fuente-texto:${tema.fuente_texto};
+      }`}
+    />
+    <script type="application/ld+json" set:html={JSON.stringify(datosEstructurados)} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

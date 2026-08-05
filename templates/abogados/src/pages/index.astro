@@ -1,0 +1,154 @@
+---
+import Base from '../layouts/Base.astro';
+import spec from '../spec.json';
+import type { SiteSpec } from '../spec';
+
+const sitio = spec as SiteSpec;
+const { hechos, contenido } = sitio;
+const { contacto } = hechos;
+
+// El WhatsApp pasa por el backend para registrar el clic antes de redirigir
+// (Fase 5). Si el negocio no tiene movil, se cae al telefono.
+const accionPrincipal = contacto.whatsapp_url ?? contacto.telefono_href;
+const etiquetaPrincipal = contacto.whatsapp_url ? 'Escribir por WhatsApp' : 'Llamar ahora';
+const anio = new Date().getFullYear();
+const fotoHero = hechos.fotos.at(0);
+const estrellas = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
+---
+
+<Base spec={sitio}>
+  <header class="cabecera">
+    <div class="envoltura cabecera__fila">
+      <a class="cabecera__nombre" href="#inicio">{hechos.nombre}</a>
+      <a class="boton boton--principal" href={accionPrincipal}>{etiquetaPrincipal}</a>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <section class="hero">
+      {
+        fotoHero && (
+          <img
+            class="hero__foto"
+            src={fotoHero}
+            alt=""
+            width="1600"
+            height="900"
+            fetchpriority="high"
+            decoding="async"
+          />
+        )
+      }
+      <div class="envoltura hero__contenido">
+        <h1>{contenido.titular}</h1>
+        <p class="hero__subtitulo">{contenido.subtitulo}</p>
+        <div class="hero__acciones">
+          <a class="boton boton--principal" href={accionPrincipal}>{contenido.cta_texto}</a>
+          <a class="boton boton--secundario" href="#contacto">Ver datos de contacto</a>
+        </div>
+        {
+          hechos.rating && hechos.num_resenas ? (
+            <p class="hero__valoracion">
+              {estrellas(Math.round(hechos.rating))} {hechos.rating} en Google
+              <span> · {hechos.num_resenas} resenas</span>
+            </p>
+          ) : null
+        }
+      </div>
+    </section>
+
+    <section class="seccion">
+      <div class="envoltura">
+        <h2>Servicios</h2>
+        <div class="rejilla" style="margin-block-start:2rem">
+          {
+            contenido.servicios.map((servicio) => (
+              <article class="tarjeta">
+                <h3 class="tarjeta__titulo">{servicio.nombre}</h3>
+                <p>{servicio.descripcion}</p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion seccion--suave">
+      <div class="envoltura" style="max-inline-size:48rem">
+        <h2>Sobre nosotros</h2>
+        <p style="margin-block-start:1.25rem">{contenido.sobre_nosotros}</p>
+      </div>
+    </section>
+
+    {
+      hechos.resenas.length > 0 && (
+        <section class="seccion">
+          <div class="envoltura">
+            <h2>Lo que dicen nuestros clientes</h2>
+            <div class="rejilla" style="margin-block-start:2rem">
+              {hechos.resenas.map((resena) => (
+                <figure class="resena">
+                  <p class="resena__estrellas" aria-label={`${resena.calificacion} de 5 estrellas`}>
+                    <span aria-hidden="true">{estrellas(resena.calificacion)}</span>
+                  </p>
+                  <blockquote class="resena__texto">{resena.texto}</blockquote>
+                  <figcaption class="resena__autor">{resena.autor}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <section class="seccion seccion--suave" id="contacto">
+      <div class="envoltura" style="max-inline-size:48rem">
+        <h2>Contacto</h2>
+        <div class="contacto__datos">
+          <p class="contacto__dato">
+            <span class="contacto__etiqueta">Telefono</span>
+            <a href={contacto.telefono_href}>{contacto.telefono}</a>
+          </p>
+          {
+            contacto.direccion && (
+              <p class="contacto__dato">
+                <span class="contacto__etiqueta">Direccion</span>
+                <span>{contacto.direccion}</span>
+              </p>
+            )
+          }
+          <p class="contacto__dato">
+            <span class="contacto__etiqueta">Zona</span>
+            <span>{hechos.zona}</span>
+          </p>
+        </div>
+
+        {
+          hechos.horario.length > 0 && (
+            <div class="horario">
+              <h3>Horario de atencion</h3>
+              <ul role="list" style="margin-block-start:0.5rem">
+                {hechos.horario.map((linea) => (
+                  <li>{linea}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+
+        <div class="hero__acciones">
+          <a class="boton boton--principal" href={accionPrincipal}>{etiquetaPrincipal}</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div class="envoltura">
+      <p>© {anio} {hechos.nombre}. Todos los derechos reservados.</p>
+      <p class="pie__atribucion">
+        Informacion del negocio y resenas obtenidas de su ficha publica en Google.
+      </p>
+    </div>
+  </footer>
+</Base>
